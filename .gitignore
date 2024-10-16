@@ -11,5 +11,8 @@ venv
 .Trashes
 ehthumbs.db
 Thumbs.db
+.env
+.kestrel-frontend/node_modules
+.kestrel-frontend/.env
 
 .github/**

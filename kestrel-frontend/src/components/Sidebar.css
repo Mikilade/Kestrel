@@ -1,0 +1,124 @@
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 225px;
+    background-color: #2c2c2c;
+    color: #ffffff;
+    padding: 0px 20px;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+.sidebar.closed {
+    transform: translateX(-225px);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0px;
+    position: relative;
+}
+
+.sidebar-logo {
+    width: 75px;
+    height: 75px;
+}
+
+.sidebar-title {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.sidebar-close {
+    position: absolute;
+    right: 5px;
+    top: 21px;
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    font-size: 25px;
+    font-weight: 100;
+    cursor: pointer;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+    padding: 5px;
+}
+
+.sidebar-close:hover {
+    background-color: #353535; /* Slightly darker than the hover color */
+}
+
+/* Styles for the '>' icon when sidebar is closed */
+.sidebar-close.open {
+    right: -50px; /* Position it outside the closed sidebar */
+    background-color: #2c2c2c;
+    padding: 5px;
+}
+
+.sidebar-close.open:hover {
+    background-color: #353535;
+}
+
+/* Rest of the CSS remains the same */
+.sidebar-menu {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu-item {
+    margin-bottom: 1px;
+}
+
+.sidebar-menu-header {
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 16px;
+    margin-left: 10px;
+    color: #ffffff;
+}
+
+.sidebar-menu-link {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 16px;
+    display: block;
+    padding: 3px 12px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidebar-menu-link:hover, .sidebar-menu-link:focus {
+    background-color: #3D3D3D;
+    color: #00FFFF;
+}
+
+.sidebar-menu-link.active {
+    background-color: #00FFFF;
+    color: #2c2c2c;
+    font-weight: bold;
+}
+
+.sidebar-menu ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.sidebar-menu-icon {
+    width: 35px;
+    height: 35px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+.sidebar-menu-header.admin {
+    color: #FFD700; /* Gold color for Admin header */
+}

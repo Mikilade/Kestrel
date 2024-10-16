@@ -1,0 +1,23 @@
+{
+    "games": [
+      {
+        "id": 1,
+        "title": "Example Game",
+        "franchise": "Example Series",
+        "genres": ["Action", "Adventure"],
+        "description": "This is an example game description.",
+        "reviews": [
+          {
+            "content": "Great game!",
+            "user_id": "User1",
+            "rating": 5
+          },
+          {
+            "content": "Loved the story.",
+            "user_id": "User2",
+            "rating": 4
+          }
+        ]
+      }
+    ]
+  }
