@@ -8,6 +8,21 @@ class IGDBApi:
     BASE_URL = "https://api.igdb.com/v4"
     
     def __init__(self):
+        """
+        Initialize the IGDBApi class.
+
+        This constructor method sets up the necessary authentication for making requests to the IGDB API.
+        It retrieves the client ID and access token from environment variables, authenticates with Twitch
+        to obtain a JWT token, and sets up the headers for subsequent API requests.
+
+        Raises:
+            ValueError: If IGDB_CLIENT_ID or IGDB_ACCESS_TOKEN environment variables are not set.
+            Exception: If authentication with Twitch fails.
+
+        Note:
+            This method expects IGDB_CLIENT_ID and IGDB_ACCESS_TOKEN to be set as environment variables.
+            It uses these credentials to authenticate with Twitch and obtain a JWT token for IGDB API access.
+        """
         self.client_id = os.environ.get("IGDB_CLIENT_ID")
         self.access_token = os.environ.get("IGDB_ACCESS_TOKEN")
         
@@ -37,22 +52,64 @@ class IGDBApi:
         }
     
     def _make_request(self, endpoint: str, body: str) -> List[Dict[str, Any]]:
+        """
+        Make a POST request to the IGDB API.
+
+        This method sends a POST request to the specified IGDB API endpoint with the given body.
+        It uses the pre-configured headers for authentication.
+
+        Args:
+            endpoint (str): The API endpoint to send the request to.
+            body (str): The request body containing the query parameters.
+
+        Returns:
+            List[Dict[str, Any]]: A list of dictionaries containing the JSON response from the API.
+
+        Raises:
+            requests.HTTPError: If the HTTP request returns an unsuccessful status code.
+
+        Note:
+            This method is intended for internal use within the IGDBApi class.
+        """
         url = f"{self.BASE_URL}/{endpoint}"
         response = requests.post(url, headers=self.headers, data=body)
         response.raise_for_status()
         return response.json()
     
     def _process_cover_url(self, cover: Dict[str, Any]) -> str:
+        """
+        Process the cover image URL from the IGDB API response.
+
+        This method takes the cover dictionary from the IGDB API response and
+        constructs a full URL for the cover image if available.
+
+        Args:
+            cover (Dict[str, Any]): A dictionary containing cover image information.
+
+        Returns:
+            str: A string containing the full URL to the cover image, or None if
+                 no valid cover image information is available.
+        Note:
+            The URL is constructed using the IGDB image server format with the
+            't_cover_big' size option.
+        """
         if not cover:
             return None
         image_id = cover.get('image_id')
-        if not image_id:
-            return None
         return f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
 
     def _process_franchise_names(self, franchises: List[Dict[str, Any]]) -> List[str]:
-        if not franchises:
-            return []
+        """
+        Process franchise names from a list of franchise dictionaries.
+
+        This method takes a list of franchise dictionaries, extracts the franchise IDs,
+        and makes an API request to fetch the corresponding franchise names.
+
+        Args:
+            franchises (List[Dict[str, Any]]): A list of dictionaries containing franchise information.
+        Returns:
+            List[str]: A list of franchise names.
+        """
         
         franchise_ids = [str(franchise) for franchise in franchises]
         
@@ -68,8 +125,17 @@ class IGDBApi:
             return []
     
     def _process_company_names(self, companies: List[Dict]) -> List[str]:
-        if not companies:
-            return []
+        """
+        Process company names from the list of involved companies.
+
+        This method filters and extracts the names of development studios involved in a game.
+        It makes an additional API request to determine which companies are developers.
+
+        Args:
+            companies (List[Dict]): A list of dictionaries containing company information.
+        Returns:
+            List[str]: A list of developer names.
+        """
         
         developers = []
         company_ids = [str(company['id']) for company in companies if 'id' in company]
@@ -95,6 +161,30 @@ class IGDBApi:
 
     
     def search_games(self, query: str, limit: int = 30) -> List[Dict[str, Any]]:
+        """
+        Search for games in the IGDB database based on a query string.
+
+        This method performs a search operation on the IGDB API to find games
+        matching the given query. It retrieves basic information about each game,
+        including id, name, summary, release date, and cover image.
+
+        Args:
+            query (str): The search query string.
+            limit (int, optional): The maximum number of results to return. Defaults to 30.
+
+        Returns:
+            List[Dict[str, Any]]: A list of dictionaries, each representing a game.
+            Each dictionary contains the following keys:
+                - id: The game's unique identifier
+                - name: The game's title
+                - summary: A brief description of the game (if available)
+                - first_release_date: The initial release date of the game (if available)
+                - cover_url: URL to the game's cover image (if available)
+
+        Note:
+            The cover URL is processed from the raw API response to provide a direct
+            link to the cover image.
+        """
         body = f'search "{query}"; fields id,name,summary,first_release_date,cover.image_id; limit {limit};'
         games = self._make_request('games', body)
         for game in games:
@@ -103,6 +193,32 @@ class IGDBApi:
 
     
     def get_game_details(self, game_id: int) -> Dict[str, Any]:
+        """
+        Retrieve detailed information about a specific game from the IGDB API.
+
+        This method fetches comprehensive details for a game given its ID, including
+        name, summary, release date, cover image, franchise, and involved companies.
+
+        Args:
+            game_id (int): The unique identifier of the game in the IGDB database.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing the game's details if found, including:
+                - name: The game's title
+                - summary: A brief description of the game
+                - first_release_date: The initial release date of the game
+                - cover_url: URL to the game's cover image
+                - franchise: List of franchise names the game belongs to
+                - studio: List of development studios involved in the game
+            Returns None if no game is found with the given ID.
+
+        Raises:
+            Any exceptions raised by the underlying API request method.
+
+        Note:
+            This method processes the raw API response to provide more user-friendly
+            data structures for franchises and studios.
+        """
         body = f'''
             fields name, summary, first_release_date, cover.image_id, 
             franchises, involved_companies.company.name;

@@ -16,6 +16,9 @@ const GameDetails = () => {
   const [inNowPlaying, setInNowPlaying] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  const token = getAccessTokenSilently();
+  // console.log(token);
+
   // Add this helper function at the beginning of your component
   const formatText = (text) => {
     if (typeof text === 'string') {
