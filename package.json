@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "python run_app.py",
-    "heroku-postbuild": "cd kestrel-frontend && npm install && npm run build"
+    "heroku-postbuild": "cd kestrel-frontend && npm install -g serve && serve -s build"
   },
   "engines": {
     "node": "14.x"
