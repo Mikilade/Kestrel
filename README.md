@@ -6,7 +6,7 @@ Kestrel is a web application inspired by the UI for the popular manga-reading si
 
 It's often difficult to catalogue all of your collection, especially when spread across multiple platforms, even if libraries like Steam have good built-in categorization options. Kestrel aims to consolidate the tracking of your collection into one place.
 
-Additionally, Kestrel aims to organize your collection via a *tag* system similar to how MangaDex catalogues their offerings. Tags are community-defined groupings of games aimed to find you a more specialized genre of game that fits the vibe you're looking for, as opposed to typical user definitions like "Action" or "Adventure" that are not descriptive at all in this age of gaming. Tags might be something like "Cozy" or "esport" for example. (*Note: the tag feature is still in development.*)
+Additionally, Kestrel aims to organize your collection via a *tag* system similar to how MangaDex catalogues their offerings. Tags are community-defined groupings of games aimed to find you a more specialized genre of game that fits the vibe you're looking for, as opposed to typical user definitions like "Action" or "Adventure" that are not descriptive at all in this age of gaming. Tags might be something like `Cozy` or `esport`, or `Souls-like` for example. (*Note: the tag feature is still in development.*)
 
 ## Features
 
