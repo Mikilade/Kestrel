@@ -18,7 +18,7 @@ Dependencies:
 - bp: Main blueprint for routes (imported from app.routes)
 """
 
-from flask import Flask
+from flask import Flask, send_from_directory
 from config import Config
 from app.extensions import db, migrate
 from flask_cors import CORS
@@ -42,7 +42,7 @@ def create_app(config_class=Config, test_case=False):
     Returns:
         Flask: A configured Flask application instance.
     """
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../kestrel-frontend/build')
     app.config.from_object(config_class)
     if test_case:
         load_dotenv
@@ -52,6 +52,14 @@ def create_app(config_class=Config, test_case=False):
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
+
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve(path):
+        if path != "" and os.path.exists(app.static_folder + '/' + path):
+            return send_from_directory(app.static_folder, path)
+        else:
+            return send_from_directory(app.static_folder, 'index.html')
 
     # Import and register blueprints
     from app.routes import bp as main_bp
