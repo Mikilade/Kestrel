@@ -7,11 +7,12 @@ def run_frontend():
     subprocess.Popen(['npm', 'start'])
     os.chdir('..')
 
-def run_backend():
+def run_backend(environ, start_response):
     app = create_app()
-    app.run()
+    return app(environ, start_response)
 
 if __name__ == '__main__':
-    run_backend()
     run_frontend()
+    app = create_app()
+    app.run()
 
