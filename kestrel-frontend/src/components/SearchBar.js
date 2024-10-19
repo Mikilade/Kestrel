@@ -18,7 +18,7 @@ const SearchBar = ({ onGameSelect }) => {
 
             setIsLoading(true);
             try {
-                const response = await axios.get(`http://localhost:5000/api/search-games?query=${query}`);
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/search-games?query=${query}`);
                 setResults(response.data);
             } catch (error) {
                 console.error('Error searching games:', error);

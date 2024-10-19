@@ -5,7 +5,7 @@ import axios from 'axios';
 import './Dashboard.css'
 import Sidebar from './Sidebar';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = `${process.env.REACT_APP_API_URL}`;
 
 const Dashboard = () => {
     const [topGames, setTopGames] = useState([]);

@@ -18,7 +18,7 @@ const AddGame = () => {
     const handleGameSelect = async (game) => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`http://localhost:5000/api/search-games-details/${game.id}`);
+            const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/search-games-details/${game.id}`);
             setSelectedGame(response.data);
         } catch (error) {
             console.error('Error fetching game details:', error);
@@ -28,7 +28,7 @@ const AddGame = () => {
 
     const handleAddGame = async () => {
         try {
-            const response = await axios.post('http://localhost:5000/api/games', selectedGame);
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/games`, selectedGame);
             alert('Game added successfully!');
             // Navigate to the new game's page
             navigate(`/games/${response.data.id}`);

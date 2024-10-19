@@ -7,7 +7,7 @@ import Sidebar from './Sidebar';
 import './NowPlaying.css';
 import gamesIcon from '../assets/game.png';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = `${process.env.REACT_APP_API_URL}`;
 
 const NowPlaying = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
