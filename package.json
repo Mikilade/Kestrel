@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "heroku-postbuild": "cd kestrel-frontend && npm install",
-    "start": "npm start",
+    "start": "npm start"
     
   },
   "engines": {
