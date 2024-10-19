@@ -3,11 +3,11 @@ from flask import request, jsonify
 from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
+import os
 
-
-AUTH0_DOMAIN = 'mikilade.us.auth0.com'
-ALGORITHMS = ['RS256']
-API_AUDIENCE = 'https://kestrel.moe'
+AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
+ALGORITHMS = os.environ.get('ALGORITHMS')
+API_AUDIENCE = os.environ.get('API_AUDIENCE')
 
 ## AuthError Exception
 '''
