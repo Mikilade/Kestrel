@@ -2,8 +2,8 @@
   "name": "kestrel",
   "version": "1.0.0",
   "scripts": {
-    "heroku-postbuild": "cd kestrel-frontend && npm install"
-    
+    "heroku-postbuild": "cd kestrel-frontend && npm install",
+    "start": "cd kestrel-frontend && npm start"
   },
   "engines": {
     "node": "14.x"
