@@ -111,8 +111,11 @@ class IGDBApi:
             List[str]: A list of franchise names.
         """
         
-        franchise_ids = [str(franchise) for franchise in franchises]
-        
+        try:
+            franchise_ids = [str(franchise) for franchise in franchises]
+        except:
+            return []
+
         if not franchise_ids:
             return []
         
