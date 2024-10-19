@@ -42,7 +42,7 @@ def create_app(config_class=Config, test_case=False):
     Returns:
         Flask: A configured Flask application instance.
     """
-    app = Flask(__name__, static_folder='../kestrel-frontend/build', static_url_path='')
+    app = Flask(__name__)
     app.config.from_object(config_class)
     if test_case:
         load_dotenv
@@ -52,14 +52,6 @@ def create_app(config_class=Config, test_case=False):
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
-
-    @app.route('/', defaults={'path': ''})
-    @app.route('/<path:path>')
-    def serve(path):
-        if path != "" and os.path.exists(app.static_folder + '/' + path):
-            return send_from_directory(app.static_folder, path)
-        else:
-            return send_from_directory(app.static_folder, 'index.js')
 
     # Import and register blueprints
     from app.routes import bp as main_bp
