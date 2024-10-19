@@ -34,12 +34,19 @@ def add_owned_game(user_id):
     Raises:
         404: If either the user or the game is not found in the database.
     """
-    user = User.query.get_or_404(user_id)
-    data = request.json
-    game = Game.query.get_or_404(data['game_id'])
-    user.owned_games.append(game)
-    db.session.commit()
-    return jsonify({'message': 'Game added to owned games'}), 200
+    try:
+        user = User.query.get_or_404(user_id)
+        data = request.json
+        game = Game.query.get_or_404(data['game_id'])
+        user.owned_games.append(game)
+        db.session.commit()
+        return jsonify({'message': 'Game added to owned games'}), 200
+    except Exception as e:
+        # If an error occurs, rollback the transaction
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        db.session.close
 
 @bp.route('/api/users/<int:user_id>/now_playing', methods=['POST'])
 def add_now_playing(user_id):
@@ -60,12 +67,19 @@ def add_now_playing(user_id):
     Raises:
         404: If either the user or the game is not found in the database.
     """
-    user = User.query.get_or_404(user_id)
-    data = request.json
-    game = Game.query.get_or_404(data['game_id'])
-    user.now_playing.append(game)
-    db.session.commit()
-    return jsonify({'message': 'Game added to now playing'}), 200
+    try:
+        user = User.query.get_or_404(user_id)
+        data = request.json
+        game = Game.query.get_or_404(data['game_id'])
+        user.now_playing.append(game)
+        db.session.commit()
+        return jsonify({'message': 'Game added to now playing'}), 200
+    except Exception as e:
+        # If an error occurs, rollback the transaction
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        db.session.close
 
 @bp.route('/api/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
@@ -165,49 +179,56 @@ def create_game():
         400: If no JSON data is provided in the request.
         409: If a game with the same IGDB ID already exists in the database.
     """
-    data = request.json
-    if not data:
-        return jsonify({'message': 'Bad request!'}), 400
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'message': 'Bad request!'}), 400
 
-    # Check if the game already exists in our database
-    existing_game = Game.query.filter_by(igdb_id=data['id']).first()
-    if existing_game:
-        return jsonify({'message': 'Game already exists', 'game': existing_game.id}), 409
+        # Check if the game already exists in our database
+        existing_game = Game.query.filter_by(igdb_id=data['id']).first()
+        if existing_game:
+            return jsonify({'message': 'Game already exists', 'game': existing_game.id}), 409
 
-    # Create new game
-    new_game = Game(
-        igdb_id=data['id'],
-        title=data['name'],
-        description=data.get('summary'),
-        cover_art_url=data.get('cover_url'),
-        franchise=data.get('franchise'),
-        studio=data.get('studio'),
-        release_date=date.fromtimestamp(data['first_release_date']) if data.get('first_release_date') else None
-    )
+        # Create new game
+        new_game = Game(
+            igdb_id=data['id'],
+            title=data['name'],
+            description=data.get('summary'),
+            cover_art_url=data.get('cover_url'),
+            franchise=data.get('franchise'),
+            studio=data.get('studio'),
+            release_date=date.fromtimestamp(data['first_release_date']) if data.get('first_release_date') else None
+        )
 
-    # Handle genres
-    if 'genres' in data:
-        for genre_data in data['genres']:
-            genre = Genre.query.filter_by(name=genre_data['name']).first()
-            if not genre:
-                genre = Genre(name=genre_data['name'])
-                db.session.add(genre)
-            new_game.genres.append(genre)
+        # Handle genres
+        if 'genres' in data:
+            for genre_data in data['genres']:
+                genre = Genre.query.filter_by(name=genre_data['name']).first()
+                if not genre:
+                    genre = Genre(name=genre_data['name'])
+                    db.session.add(genre)
+                new_game.genres.append(genre)
 
-    db.session.add(new_game)
-    db.session.commit()
+        db.session.add(new_game)
+        db.session.commit()
 
-    return jsonify({
-        'id': new_game.id,
-        'igdb_id': new_game.igdb_id,
-        'title': new_game.title,
-        'description': new_game.description,
-        'cover_art_url': new_game.cover_art_url,
-        'franchise': new_game.franchise,
-        'studio': new_game.studio,
-        'release_date': new_game.release_date.isoformat() if new_game.release_date else None,
-        'genres': [{'id': genre.id, 'name': genre.name} for genre in new_game.genres]
-    }), 201
+        return jsonify({
+            'id': new_game.id,
+            'igdb_id': new_game.igdb_id,
+            'title': new_game.title,
+            'description': new_game.description,
+            'cover_art_url': new_game.cover_art_url,
+            'franchise': new_game.franchise,
+            'studio': new_game.studio,
+            'release_date': new_game.release_date.isoformat() if new_game.release_date else None,
+            'genres': [{'id': genre.id, 'name': genre.name} for genre in new_game.genres]
+        }), 201
+    except Exception as e:
+        # If an error occurs, rollback the transaction
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        db.session.close
 
 @bp.route('/api/genres', methods=['GET'])
 def get_genres():
@@ -253,11 +274,18 @@ def create_genre():
     Raises:
         400: If no JSON data is provided in the request or if 'name' is missing.
     """
-    data = request.json
-    new_genre = Genre(name=data['name'], description=data.get('description'))
-    db.session.add(new_genre)
-    db.session.commit()
-    return jsonify({'id': new_genre.id, 'name': new_genre.name}), 201
+    try:
+        data = request.json
+        new_genre = Genre(name=data['name'], description=data.get('description'))
+        db.session.add(new_genre)
+        db.session.commit()
+        return jsonify({'id': new_genre.id, 'name': new_genre.name}), 201
+    except Exception as e:
+        # If an error occurs, rollback the transaction
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        db.session.close
 
 @bp.route('/api/games/<int:game_id>', methods=['GET'])
 def get_game_details(game_id):
@@ -435,18 +463,25 @@ def manage_user_library(user_id,game_id, user=None):
     """
     game = Game.query.get_or_404(game_id)
 
-    if request.method == 'POST':
-        if game not in user.owned_games:
-            user.owned_games.append(game)
-            db.session.commit()
-            return jsonify({'message': 'Game added to library', 'in_library': True}), 200
-        return jsonify({'message': 'Game already in library', 'in_library': True}), 200
-    else:
-        if game in user.owned_games:
-            user.owned_games.remove(game)
-            db.session.commit()
-            return jsonify({'message': 'Game removed from library', 'in_library': False}), 200
-        return jsonify({'message': 'Game not in library', 'in_library': False}), 200
+    try:
+        if request.method == 'POST':
+            if game not in user.owned_games:
+                user.owned_games.append(game)
+                db.session.commit()
+                return jsonify({'message': 'Game added to library', 'in_library': True}), 200
+            return jsonify({'message': 'Game already in library', 'in_library': True}), 200
+        else:
+            if game in user.owned_games:
+                user.owned_games.remove(game)
+                db.session.commit()
+                return jsonify({'message': 'Game removed from library', 'in_library': False}), 200
+            return jsonify({'message': 'Game not in library', 'in_library': False}), 200
+    except Exception as e:
+        # If an error occurs, rollback the transaction
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        db.session.close
 
 @bp.route('/api/users/<string:user_id>/now_playing/<int:game_id>', methods=['POST', 'DELETE'])
 @user_required
@@ -477,18 +512,25 @@ def manage_now_playing(user_id,game_id, user=None):
     """
     game = Game.query.get_or_404(game_id)
 
-    if request.method == 'POST':
-        if game not in user.now_playing:
-            user.now_playing.append(game)
-            db.session.commit()
-            return jsonify({'message': 'Game added to Now Playing', 'in_now_playing': True}), 200
-        return jsonify({'message': 'Game already in Now Playing', 'in_now_playing': True}), 200
-    else:
-        if game in user.now_playing:
-            user.now_playing.remove(game)
-            db.session.commit()
-            return jsonify({'message': 'Game removed from Now Playing', 'in_now_playing': False}), 200
-        return jsonify({'message': 'Game not in Now Playing', 'in_now_playing': False}), 200
+    try:
+        if request.method == 'POST':
+            if game not in user.now_playing:
+                user.now_playing.append(game)
+                db.session.commit()
+                return jsonify({'message': 'Game added to Now Playing', 'in_now_playing': True}), 200
+            return jsonify({'message': 'Game already in Now Playing', 'in_now_playing': True}), 200
+        else:
+            if game in user.now_playing:
+                user.now_playing.remove(game)
+                db.session.commit()
+                return jsonify({'message': 'Game removed from Now Playing', 'in_now_playing': False}), 200
+            return jsonify({'message': 'Game not in Now Playing', 'in_now_playing': False}), 200
+    except Exception as e:
+        # If an error occurs, rollback the transaction
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        db.session.close
 
 
 @bp.route('/api/users/game_status/<int:game_id>', methods=['GET'])
@@ -647,12 +689,19 @@ def remove_from_library(user, game_id):
         This function is protected by the @user_required decorator, which
         ensures that only authenticated users can access this endpoint.
     """
-    game = Game.query.get_or_404(game_id)
-    if game in user.owned_games:
-        user.owned_games.remove(game)
-        db.session.commit()
-        return jsonify({'message': 'Game removed from library'}), 200
-    return jsonify({'message': 'Game not in library'}), 404
+    try:
+        game = Game.query.get_or_404(game_id)
+        if game in user.owned_games:
+            user.owned_games.remove(game)
+            db.session.commit()
+            return jsonify({'message': 'Game removed from library'}), 200
+        return jsonify({'message': 'Game not in library'}), 404
+    except Exception as e:
+        # If an error occurs, rollback the transaction
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        db.session.close
 
 @bp.route('/api/users/now_playing', methods=['GET'])
 @user_required
@@ -711,12 +760,19 @@ def remove_from_now_playing(user, game_id):
         This function is protected by the @user_required decorator, which
         ensures that only authenticated users can access this endpoint.
     """
-    game = Game.query.get_or_404(game_id)
-    if game in user.now_playing:
-        user.now_playing.remove(game)
-        db.session.commit()
-        return jsonify({'message': 'Game removed from Now Playing'}), 200
-    return jsonify({'message': 'Game not in Now Playing'}), 404
+    try:
+        game = Game.query.get_or_404(game_id)
+        if game in user.now_playing:
+            user.now_playing.remove(game)
+            db.session.commit()
+            return jsonify({'message': 'Game removed from Now Playing'}), 200
+        return jsonify({'message': 'Game not in Now Playing'}), 404
+    except Exception as e:
+        # If an error occurs, rollback the transaction
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        db.session.close
 
 @bp.route('/api/games/<int:game_id>', methods=['PATCH'])
 @requires_auth('patch:games')
@@ -752,45 +808,52 @@ def update_game(payload, game_id):
         This function requires authentication with the 'patch:games' permission.
         If genres are provided, all existing genres for the game are replaced with the new ones.
     """
-    game = Game.query.get_or_404(game_id)
-    data = request.json
+    try:
+        game = Game.query.get_or_404(game_id)
+        data = request.json
 
-    # Update game fields
-    if 'title' in data:
-        game.title = data['title']
-    if 'description' in data:
-        game.description = data['description']
-    if 'cover_art_url' in data:
-        game.cover_art_url = data['cover_art_url']
-    if 'franchise' in data:
-        game.franchise = data['franchise']
-    if 'studio' in data:
-        game.studio = data['studio']
-    if 'release_date' in data:
-        game.release_date = date.fromisoformat(data['release_date'])
+        # Update game fields
+        if 'title' in data:
+            game.title = data['title']
+        if 'description' in data:
+            game.description = data['description']
+        if 'cover_art_url' in data:
+            game.cover_art_url = data['cover_art_url']
+        if 'franchise' in data:
+            game.franchise = data['franchise']
+        if 'studio' in data:
+            game.studio = data['studio']
+        if 'release_date' in data:
+            game.release_date = date.fromisoformat(data['release_date'])
 
-    # Handle genres
-    if 'genres' in data:
-        game.genres = []  # Clear existing genres
-        for genre_name in data['genres']:
-            genre = Genre.query.filter_by(name=genre_name).first()
-            if not genre:
-                genre = Genre(name=genre_name)
-                db.session.add(genre)
-            game.genres.append(genre)
+        # Handle genres
+        if 'genres' in data:
+            game.genres = []  # Clear existing genres
+            for genre_name in data['genres']:
+                genre = Genre.query.filter_by(name=genre_name).first()
+                if not genre:
+                    genre = Genre(name=genre_name)
+                    db.session.add(genre)
+                game.genres.append(genre)
 
-    db.session.commit()
+        db.session.commit()
 
-    return jsonify({
-        'id': game.id,
-        'title': game.title,
-        'description': game.description,
-        'cover_art_url': game.cover_art_url,
-        'franchise': game.franchise,
-        'studio': game.studio,
-        'release_date': game.release_date.isoformat() if game.release_date else None,
-        'genres': [genre.name for genre in game.genres]
-    }), 200
+        return jsonify({
+            'id': game.id,
+            'title': game.title,
+            'description': game.description,
+            'cover_art_url': game.cover_art_url,
+            'franchise': game.franchise,
+            'studio': game.studio,
+            'release_date': game.release_date.isoformat() if game.release_date else None,
+            'genres': [genre.name for genre in game.genres]
+        }), 200
+    except Exception as e:
+        # If an error occurs, rollback the transaction
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        db.session.close
 
 @bp.route('/api/games/<int:game_id>', methods=['DELETE'])
 @requires_auth('delete:games')
@@ -822,25 +885,32 @@ def delete_game(payload, game_id):
         2. Deletes all comments associated with the game.
         3. Deletes the game itself from the database.
     """
-    game = Game.query.get_or_404(game_id)
-    
-    # Remove the game from users' libraries and now_playing lists
-    for user in game.owners:
-        user.owned_games.remove(game)
-    for user in game.current_players:
-        user.now_playing.remove(game)
-    
-    # Delete associated comments
-    Comment.query.filter_by(game_id=game_id).delete()
-    
-    # Delete the game
-    db.session.delete(game)
-    db.session.commit()
+    try:
+        game = Game.query.get_or_404(game_id)
+        
+        # Remove the game from users' libraries and now_playing lists
+        for user in game.owners:
+            user.owned_games.remove(game)
+        for user in game.current_players:
+            user.now_playing.remove(game)
+        
+        # Delete associated comments
+        Comment.query.filter_by(game_id=game_id).delete()
+        
+        # Delete the game
+        db.session.delete(game)
+        db.session.commit()
 
-    return jsonify({
-        'success': True,
-        'deleted': game_id
-    }), 200
+        return jsonify({
+            'success': True,
+            'deleted': game_id
+        }), 200
+    except Exception as e:
+        # If an error occurs, rollback the transaction
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        db.session.close
 
 @bp.errorhandler(400)
 def not_found(error):

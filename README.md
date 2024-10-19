@@ -67,6 +67,7 @@ The deliverables for this project. Comprised of multiple items that will be expo
 - There are many endpoints for the app, consult the actual `routes.py` file for information on all of them as the docstrings for each clearly detail what all of them do.
 - A few endpoints that are special: `/api/games/<int:game_id>` for both `PATCH` and `DELETE` requests require the `patch:games` and `delete:games` permissions respectively. **These are admin-scoped and granted permissions**, so only users with the `Admin` role can make these requests to the backend endpoint. The `Admin` role is granted to specific users manually within the app Auth0 dashboard, and normal users have no way to get the role autonomously.
 - Error handlers for expected common errors most users (or the frontend, rather) would make to the backend are created.
+- All routes that commit something to the database are wrapped in a `try/except/finally` block to handle 500 errors and rollback the database if needed, along with always closing the database connection to free up the connection pool.
 
 `search_engine.py`
 - This module handles connecting to and querying information for games from the Twitch IGDB API.
